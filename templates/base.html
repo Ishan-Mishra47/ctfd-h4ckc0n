@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html data-bs-theme="dark">
+<head>
+  <title>{{ title or Configs.ctf_name }}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="{{ Configs.ctf_small_icon }}" type="image/x-icon">
+
+  {# Clockwork background: optional font for the clock numerals. Loaded without blocking page render. #}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap" /></noscript>
+
+  {{ meta | safe }}
+
+  {% block stylesheets %}
+    {{ Assets.css("assets/scss/main.scss") }}
+  {% endblock %}
+
+  {{ Plugins.styles }}
+
+  {# Clockwork background styles. Values/motion mirror main.scss, remapped to the cwbg-* class names used below. #}
+  {% raw %}
+  <style>
+    /* Dark only: <html data-bs-theme="dark"> is fixed and the theme switcher is not loaded. */
+    :root {
+      --ink: #e3e3e3;
+      --ink-soft: #c5c5c5;
+      --muted: #919191;
+      --line: rgba(235, 235, 235, 0.20);
+      --line-faint: rgba(235, 235, 235, 0.10);
+      --font-serif: "Cormorant Garamond", Georgia, serif;
+    }
+    html { background: #0a0a0c; color-scheme: dark; height: 100%; }
+    body { background: transparent; }
+    .navbar {
+    position: relative !important;
+    z-index: 1;
+    }
+
+    /* z-index:-1 puts the backdrop behind all page content WITHOUT giving main/footer a stacking context,
+       so Bootstrap modals, dropdowns and the fixed navbar keep working normally.
+       (main.scss uses 0, but this HTML has no main/footer z-index rules, so -1 is the safe equivalent.) */
+    .cwbg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: transparent; }
+    .cwbg-gears { position: absolute; inset: 0; width: 100%; height: 100%; animation: cwbg-fade 2s ease both; }
+
+    /* Gear stroke (main.scss .gears .gear) */
+    .cwbg-gear { fill: none; stroke: var(--line); stroke-width: 1.1; vector-effect: non-scaling-stroke; }
+
+    /* Inner rings + spokes (main.scss .gears .gear .hub / .spoke) */
+    .cwbg-gear.cwbg-thin { stroke: var(--line-faint); }
+
+    /* Rotation wrapper (main.scss .gear) — JS overrides duration/direction/origin inline. */
+    @keyframes cwbg-spin { to { rotate: 360deg; } }
+    .cwbg-spin { animation: cwbg-spin var(--dur, 60s) linear infinite; animation-direction: var(--dir, normal); }
+
+    /* Clock container (main.scss .clock) */
+    .cwbg-clock { position: absolute; left: 50%; top: 50%; width: min(92vmin, 880px); aspect-ratio: 1; translate: -50% -50%; opacity: .9; animation: cwbg-rise 1.6s cubic-bezier(.2,.7,.2,1) both; }
+    .cwbg-clock svg { width: 100%; height: 100%; overflow: visible; }
+
+    /* Rings (main.scss .ring*) */
+    .cwbg-ring { fill: none; stroke: var(--line); stroke-width: .9; }
+    .cwbg-ring.cwbg-outer { stroke-width: 2.4; }
+    .cwbg-ring.cwbg-fine { stroke: var(--line-faint); }
+    .cwbg-ring.cwbg-fine.cwbg-dashed { stroke-dasharray: 2 5; }
+
+    /* Ticks (main.scss .tick*) */
+    .cwbg-tick { stroke: var(--line); stroke-width: .8; }
+    .cwbg-tick.cwbg-major { stroke-width: 2; }
+
+    /* Numerals (main.scss .numeral) */
+    .cwbg-num { fill: var(--line); font: 600 20px var(--font-serif); text-anchor: middle; dominant-baseline: central; }
+
+    /* Hands (main.scss .hand + .hand path) */
+    .cwbg-hand { transform-origin: 0 0; transition: transform .35s cubic-bezier(.4, 2.2, .5, 1); will-change: transform; }
+    .cwbg-hand path { fill: rgba(20, 20, 22, .16); stroke: var(--line); stroke-width: .8; }
+
+    /* Second hand (main.scss .hand-sec line + .hand-ring) */
+    .cwbg-sec line { stroke: rgba(67, 67, 68, 0.32); stroke-width: 1.2; }
+    .cwbg-sec circle { fill: none; stroke: var(--line); stroke-width: 1; }
+
+    /* Hub (main.scss .hub) */
+    .cwbg-hub { fill: var(--ink-soft); opacity: .4; }
+
+    /* Entrance motions (main.scss fade / rise) */
+    @keyframes cwbg-fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes cwbg-rise {
+      from { opacity: 0; transform: translateY(8px) scale(.985); filter: blur(4px); }
+      to   { opacity: 1; transform: none; filter: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) { .cwbg-spin { animation: none !important; } .cwbg-hand { transition: none !important; } }
+    @media print { .cwbg { display: none !important; } }
+  </style>
+  {% endraw %}
+
+  {# color_mode_switcher.js is intentionally not loaded: the site is dark-only, so nothing can switch it to light. #}
+
+  <script type="text/javascript">
+      window.init = {
+          'urlRoot': "{{ request.script_root }}",
+          'csrfNonce': "{{ Session.nonce }}",
+          'userMode': "{{ Configs.user_mode }}",
+          'userId': {{ Session.id }},
+          'userName': {{ User.name | tojson }},
+          'userEmail': {{ User.email | tojson }},
+          'userVerified': {{ User.verified | tojson }},
+          'teamId': {{ Team.id | tojson }},
+          'teamName': {{ Team.name | tojson }},
+          'start': {{ Configs.start | tojson }},
+          'end': {{ Configs.end | tojson }},
+          'themeSettings': {{ Configs.theme_settings | tojson }},
+          'eventSounds': [
+            "/themes/core/static/sounds/notification.webm",
+            "/themes/core/static/sounds/notification.mp3",
+          ],
+      }
+  </script>
+
+  {{ Configs.theme_header }}
+</head>
+<body>
+{# Clockwork backdrop: gears + clock face (decorative, behind everything) #}
+<div class="cwbg" aria-hidden="true">
+  <svg id="cwbg-gears" class="cwbg-gears" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"></svg>
+  <div class="cwbg-clock">
+    <svg viewBox="-200 -200 400 400">
+      <circle r="196" class="cwbg-ring cwbg-outer"/>
+      <circle r="188" class="cwbg-ring"/>
+      <circle r="150" class="cwbg-ring cwbg-fine"/>
+      <circle r="62" class="cwbg-ring cwbg-fine cwbg-dashed"/>
+      <g id="cwbg-ticks"></g>
+      <g id="cwbg-nums"></g>
+      <g class="cwbg-hand cwbg-slow" id="cwbg-h-hour"><path class="cwbg-hand-body" d="M-5 18 L-3 -96 L0 -104 L3 -96 L5 18 Z"/></g>
+      <g class="cwbg-hand cwbg-slow" id="cwbg-h-min"><path class="cwbg-hand-body" d="M-3.5 22 L-2 -150 L0 -160 L2 -150 L3.5 22 Z"/></g>
+      <g class="cwbg-hand cwbg-sec" id="cwbg-h-sec"><line y1="34" y2="-172"/><circle cy="-130" r="6"/></g>
+      <circle r="6" class="cwbg-hub"/>
+    </svg>
+  </div>
+</div>
+
+{% include "components/navbar.html" %}
+
+<main role="main">
+  {% block content %}
+  {% endblock %}
+</main>
+
+{% include "components/snackbar.html" %}
+
+<footer class="footer">
+  <div class="container text-center">
+    <a href="https://ctfd.io" class="text-secondary">
+      <small class="text-muted">
+        {% trans %}Powered by CTFd{% endtrans %}
+      </small>
+    </a>
+  </div>
+</footer>
+
+{% include "components/notifications.html" %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/page.js") }}
+{% endblock %}
+
+{{ Plugins.scripts }}
+
+{# Clockwork background script (self-contained, touches only #cwbg-* elements) #}
+{% raw %}
+<script>
+  (function () {
+    var NS = 'http://www.w3.org/2000/svg', TAU = Math.PI * 2;
+    function el(tag, attrs, parent) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (parent) parent.appendChild(e);
+      return e;
+    }
+
+    /* gear generator: n teeth, pitch radius r, module m */
+    function gearPath(n, r, m) {
+      var ro = r + m * 0.55, rr = r - m * 0.6, p = TAU / n, d = '';
+      function pt(rad, a) { return (rad * Math.cos(a)).toFixed(2) + ',' + (rad * Math.sin(a)).toFixed(2); }
+      for (var k = 0; k < n; k++) {
+        var c = k * p;
+        d += (k ? 'L' : 'M') + pt(rr, c - 0.28 * p) + 'L' + pt(ro, c - 0.15 * p) + 'L' + pt(ro, c + 0.15 * p) + 'L' + pt(rr, c + 0.28 * p);
+      }
+      return d + 'Z';
+    }
+    function gearBody(g, n, r, m, cls) {
+      el('path', { d: gearPath(n, r, m), 'class': 'cwbg-gear ' + (cls || '') }, g);
+      var rim = r - m * 1.7, hub = Math.max(r * 0.16, 6);
+      el('circle', { r: rim, 'class': 'cwbg-gear cwbg-thin' }, g);
+      el('circle', { r: hub, 'class': 'cwbg-gear cwbg-thin' }, g);
+      var spokes = n > 20 ? 6 : (n > 12 ? 5 : 4);
+      for (var i = 0; i < spokes; i++) {
+        var a = i * TAU / spokes;
+        el('line', { x1: (hub * Math.cos(a)).toFixed(2), y1: (hub * Math.sin(a)).toFixed(2),
+                     x2: (rim * Math.cos(a)).toFixed(2), y2: (rim * Math.sin(a)).toFixed(2), 'class': 'cwbg-gear cwbg-thin' }, g);
+      }
+    }
+
+    /* meshing gear chains: counter-rotating, speeds in true tooth ratio */
+    var M = 8, BASE_PERIOD = 260;
+    var chains = [
+      { x: 110,  y: 150, n: 26, red: 0, links: [[28, 16], [72, 34], [18, 12]] },
+      { x: 1490, y: 880, n: 30, red: 1, links: [[205, 18], [238, 10], [190, 24]] },
+      { x: 1500, y: 130, n: 14, red: 0, links: [[112, 22], [150, 12]] },
+      { x: 150,  y: 900, n: 20, red: 0, links: [[-22, 12], [-60, 26]] }
+    ];
+    var svg = document.getElementById('cwbg-gears');
+    if (!svg) return;
+    chains.forEach(function (ch) {
+      var prev = { x: ch.x, y: ch.y, n: ch.n, th: Math.random() * 360, dir: 1 }, list = [prev];
+      ch.links.forEach(function (l) {
+        var a = l[0] * Math.PI / 180, n = l[1], dist = (prev.n + n) * M / 2;
+        var cur = { x: prev.x + dist * Math.cos(a), y: prev.y + dist * Math.sin(a), n: n, dir: -prev.dir };
+        var u = ((l[0] - prev.th) * prev.n / 360) % 1; if (u < 0) u += 1;
+        cur.th = l[0] + 180 - 360 * (0.5 - u) / n;   // tooth meets gap
+        list.push(cur); prev = cur;
+      });
+      list.forEach(function (g, i) {
+        var outer = el('g', { 'class': 'cwbg-spin' }, svg);
+        outer.style.transformOrigin = g.x + 'px ' + g.y + 'px';
+        outer.style.animationDuration = (BASE_PERIOD * g.n / 24).toFixed(1) + 's';
+        outer.style.animationDirection = g.dir > 0 ? 'normal' : 'reverse';
+        var inner = el('g', { transform: 'translate(' + g.x.toFixed(1) + ' ' + g.y.toFixed(1) + ') rotate(' + g.th.toFixed(2) + ')' }, outer);
+        gearBody(inner, g.n, g.n * M / 2, M, ch.red && i === 0 ? 'cwbg-red' : '');
+      });
+    });
+
+    /* clock ticks + live hands */
+    var ticks = document.getElementById('cwbg-ticks');
+    if (ticks) {
+      for (var i = 0; i < 60; i++) {
+        var a = i * TAU / 60 - Math.PI / 2, major = i % 5 === 0, r1 = major ? 174 : 180, r2 = 187;
+        el('line', { x1: r1 * Math.cos(a), y1: r1 * Math.sin(a), x2: r2 * Math.cos(a), y2: r2 * Math.sin(a), 'class': 'cwbg-tick' + (major ? ' cwbg-major' : '') }, ticks);
+      }
+    }
+    var nums = document.getElementById('cwbg-nums');
+    if (nums) {
+      var roman = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+      for (var j = 0; j < 12; j++) {
+        var b = j * TAU / 12 - Math.PI / 2;
+        var t = el('text', { x: 160 * Math.cos(b), y: 160 * Math.sin(b), 'class': 'cwbg-num' }, nums);
+        t.textContent = roman[j];
+      }
+    }
+    var hS = document.getElementById('cwbg-h-sec'), hM = document.getElementById('cwbg-h-min'), hH = document.getElementById('cwbg-h-hour');
+    var last = { s: 0, m: 0, h: 0 }, turns = { s: 0, m: 0, h: 0 };
+    function put(node, key, deg) {
+      if (!node) return;
+      if (deg < last[key]) turns[key]++;
+      last[key] = deg;
+      node.style.transform = 'rotate(' + (deg + turns[key] * 360) + 'deg)';
+    }
+    function tick() {
+      if (document.hidden) return;   // no work while the tab is in the background
+      var d = new Date(), s = d.getSeconds(), m = d.getMinutes() + s / 60, h = (d.getHours() % 12) + m / 60;
+      put(hS, 's', s * 6); put(hM, 'm', m * 6); put(hH, 'h', h * 30);
+    }
+    tick(); setInterval(tick, 1000);
+  })(); 
+</script>
+{% endraw %}
+
+{{ Configs.theme_footer }}
+</body>
+</html>
