@@ -1,5 +1,149 @@
 {% extends "base.html" %}
 
+{% block stylesheets %}
+  {{ super() }}
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    /* =====================================================================
+       Only the table is customized. All values mirror the scoreboard's
+       .standings-board / .board-inner so this list reads as the same "board".
+       ===================================================================== */
+    :root {
+      --paper-1: #2a2a2d;
+      --paper-2: #1f1f1f;
+      --paper-3: #333333;
+      --paper-ink: #e0e0e0;
+      --paper-muted: #a2a2a2;
+      --muted: #919191;
+      --ink: #e3e3e3;
+      --ink-soft: #c5c5c5;
+      --line: rgba(235, 235, 235, 0.20);
+      --line-faint: rgba(235, 235, 235, 0.10);
+      --font-serif: "Cormorant Garamond", Georgia, serif;
+      --font-mono: "Share Tech Mono", ui-monospace, monospace;
+    }
+
+    /* Card wrapper — same treatment as the scoreboard's .standings-board */
+    .standings-board {
+      margin: 1rem auto 2rem;
+      padding: 1.25rem 1.5rem;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.18), transparent 8px, transparent calc(100% - 8px), rgba(0,0,0,.18)),
+        var(--paper-1);
+      border: 1px solid rgba(255,255,255,.05);
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.4);
+      overflow: hidden;
+    }
+
+    /* Table reset — no striping, no Bootstrap cell borders */
+    .board-inner {
+      --bs-table-color: var(--paper-ink);
+      --bs-table-bg: transparent;
+      --bs-table-striped-color: var(--paper-ink);
+      --bs-table-striped-bg: transparent;
+      --bs-table-hover-color: var(--paper-ink);
+      --bs-table-hover-bg: rgba(255, 255, 255, .03);
+      --bs-table-border-color: transparent;
+      margin: 0;
+      width: 100%;
+      color: var(--paper-ink) !important;
+      background-color: transparent !important;
+    }
+
+    /* Force the grey palette on every table element so theme Bootstrap can't override */
+    .board-inner > thead > tr > th,
+    .board-inner > tbody > tr > td,
+    .board-inner > tbody > tr > th {
+      background-color: transparent !important;
+      border: none;
+      color: var(--paper-ink) !important;
+    }
+
+    /* Header row — mono, uppercase, letter-spaced, thin line below */
+    .board-inner thead th {
+      font: 400 0.68rem var(--font-mono);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--paper-muted) !important;
+      border-bottom: 1px solid var(--line) !important;
+      padding: 0.5rem 1rem 0.75rem;
+      white-space: nowrap;
+    }
+
+    /* Body rows — dashed separators (scoreboard's .standings-list style) */
+    .board-inner tbody td {
+      border-bottom: 1px dashed var(--line-faint) !important;
+      padding: 0.95rem 1rem;
+      vertical-align: middle;
+    }
+    .board-inner tbody tr:last-child td {
+      border-bottom: none !important;
+    }
+    .board-inner tbody tr:hover td {
+      background-color: rgba(255, 255, 255, .03) !important;
+    }
+
+    /* Team name — serif, larger, hover underline (scoreboard's .standing-name) */
+    .board-inner tbody td:first-child > a:not(.badge) {
+      font: 600 1.1rem / 1.25 var(--font-serif);
+      letter-spacing: 0.01em;
+      color: var(--ink) !important;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .board-inner tbody td:first-child > a:not(.badge):hover {
+      color: #fff !important;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .board-inner tbody td:first-child > a:not(.badge):focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    /* Secondary columns — mono/muted like the scoreboard's .standing-score */
+    .board-inner tbody td.is-mono {
+      font: 0.9rem var(--font-mono);
+      color: var(--paper-muted) !important;
+    }
+    .board-inner tbody td.is-muted {
+      font-size: 0.9rem;
+      color: var(--paper-muted) !important;
+    }
+
+    /* Badges — subtle outlined pills (scoreboard's badge style) */
+    .board-inner .badge {
+      font: 0.6rem var(--font-mono) !important;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: transparent !important;
+      color: var(--muted) !important;
+      border: 1px solid var(--line) !important;
+      padding: 0.28em 0.65em;
+      vertical-align: middle;
+      font-weight: 400;
+    }
+
+    /* Website icon link */
+    .board-inner .ext-link {
+      color: var(--muted) !important;
+      opacity: 0.7;
+      transition: opacity 0.2s ease, color 0.2s ease;
+    }
+    .board-inner .ext-link:hover {
+      opacity: 1;
+      color: var(--ink-soft) !important;
+    }
+
+    /* Dark dropdown options for the page-select */
+    .page-select option {
+      background-color: var(--paper-2);
+      color: var(--ink);
+    }
+  </style>
+{% endblock %}
+
 {% block content %}
   <div class="jumbotron">
     <div class="container">
@@ -41,84 +185,73 @@
 
     <hr>
 
-    <div class="row">
-      <div class="col-md-12">
-        <table class="table table-striped align-middle">
-          <thead>
+    <div class="standings-board">
+      <table class="table board-inner align-middle mb-0">
+        <thead>
           <tr>
             <th class="text-md-start">{% trans %}Team{% endtrans %}</th>
-            <th>{% trans %}Website{% endtrans %}</th>
+            <th class="text-center" style="width: 40px;">{% trans %}Website{% endtrans %}</th>
             <th class="d-none d-md-table-cell">{% trans %}Affiliation{% endtrans %}</th>
-            <th class="d-none d-md-table-cell">{% trans %}Country{% endtrans %}</th>
+            <th class="d-none d-md-table-cell text-end">{% trans %}Country{% endtrans %}</th>
           </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
 
-          {% for team in teams.items %}
-            <tr>
-              <td>
-                {% if scores_visible() %}
-                  <a href="{{ url_for('teams.public', team_id=team.id) }}">{{ team.name | truncate(50) }}</a>
+        {% for team in teams.items %}
+          <tr>
+            <td>
+              {% if scores_visible() %}
+                <a href="{{ url_for('teams.public', team_id=team.id) }}">{{ team.name | truncate(50) }}</a>
+              {% else %}
+                <span>{{ team.name | truncate(50) }}</span>
+              {% endif %}
+
+              {% if team.bracket_id %}
+                <span class="badge ms-2">{{ team.bracket.name }}</span>
+              {% endif %}
+
+              {% if team.oauth_id %}
+                <a href="https://majorleaguecyber.org/t/{{ team.name }}" class="badge ms-2" target="_blank" rel="noopener">
+                  {% trans %}Official{% endtrans %}
+                </a>
+              {% endif %}
+            </td>
+
+            <td class="text-center" style="width: 40px;">
+              {% if team.website and (team.website.startswith('http://') or team.website.startswith('https://')) %}
+                <a href="{{ team.website }}" target="_blank" rel="noopener" class="ext-link" title="{{ team.website }}" data-bs-toggle="tooltip" data-bs-placement="top">
+                  <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                </a>
+              {% endif %}
+            </td>
+
+            <td class="d-none d-md-table-cell is-muted">
+              {% if team.affiliation %}
+                {% if team.affiliation | length > 50 %}
+                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ team.affiliation }}">
+                      {{ team.affiliation | truncate(50) }}
+                  </span>
                 {% else %}
-                  <span>{{ team.name | truncate(50) }}</span>
+                  <span>
+                    {{ team.affiliation | truncate(50) }}
+                  </span>
                 {% endif %}
+              {% endif %}
+            </td>
 
-                {% if team.bracket_id %}
-                  <span class="badge bg-secondary ms-2">{{ team.bracket.name }}</span>
-                {% endif %}
-
-                {% if team.oauth_id %}
-                  <a href="https://majorleaguecyber.org/t/{{ team.name }}">
-                    <span class="badge bg-primary ms-2">Official</span>
-                  </a>
-                {% endif %}
-              </td>
-
-              <td style="width: 10px;">
-                {% if team.website and (team.website.startswith('http://') or team.website.startswith('https://')) %}
-                  <a href="{{ team.website }}" target="_blank" rel="noopener">
-                    <i
-                        class="fas fa-external-link-alt"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        title="{{ team.website }}"
-                    ></i>
-                  </a>
-                {% endif %}
-              </td>
-
-              <td class="d-none d-md-table-cell">
-                {% if team.affiliation %}
-
-                  {% if team.affiliation | length > 50 %}
-                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ team.affiliation }}">
-                        {% if team.affiliation %}{{ team.affiliation | truncate(50) }}{% endif %}
-                    </span>
-                  {% else %}
-                    <span>
-                      {% if team.affiliation %}
-                        {{ team.affiliation | truncate(50) }}
-                      {% endif %}
-                    </span>
-                  {% endif %}
-
-                {% endif %}
-              </td>
-
-              <td class="d-none d-md-table-cell">
-							<span>
-								{% if team.country %}
+            <td class="d-none d-md-table-cell text-end is-mono">
+              <span>
+                {% if team.country %}
                   <i class="flag-{{ team.country.lower() }}"></i>
                   {{ lookup_country_code(team.country) }}
                 {% endif %}
-							</span>
-              </td>
-            </tr>
-          {% endfor %}
+              </span>
+            </td>
+          </tr>
+        {% endfor %}
 
-          </tbody>
-        </table>
-      </div>
+        </tbody>
+      </table>
     </div>
 
     {% if teams.pages > 1 %}
