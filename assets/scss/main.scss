@@ -113,21 +113,21 @@ body,
   --bs-gray-900: #111111;
 
   /* Semantic Theme Colors (Strict Monochrome except Success/Solves) */
-  --bs-primary: #dcdcdc;        /* Greyish-white primary accent */
+  --bs-primary: #dcdcdc; /* Greyish-white primary accent */
   --bs-primary-rgb: 220, 220, 220;
-  --bs-secondary: #8c8c8c;      /* Neutral mid-grey */
+  --bs-secondary: #8c8c8c; /* Neutral mid-grey */
   --bs-secondary-rgb: 140, 140, 140;
-  --bs-success: #28a745;        /* Preserved solve green */
+  --bs-success: #28a745; /* Preserved solve green */
   --bs-success-rgb: 40, 167, 69;
-  --bs-info: #e0e0e0;           /* Greyish-white tags & info */
+  --bs-info: #e0e0e0; /* Greyish-white tags & info */
   --bs-info-rgb: 224, 224, 224;
-  --bs-warning: #cccccc;        /* Greyish-white warnings */
+  --bs-warning: #cccccc; /* Greyish-white warnings */
   --bs-warning-rgb: 204, 204, 204;
-  --bs-danger: #333333;         /* Deep charcoal for wrong/error states */
+  --bs-danger: #333333; /* Deep charcoal for wrong/error states */
   --bs-danger-rgb: 51, 51, 51;
-  --bs-light: #e6e6e6;          /* Greyish-white light utility */
+  --bs-light: #e6e6e6; /* Greyish-white light utility */
   --bs-light-rgb: 230, 230, 230;
-  --bs-dark: #dcdcdc;           /* Maps .bg-dark (Navbar) directly to greyish-white */
+  --bs-dark: #dcdcdc; /* Maps .bg-dark (Navbar) directly to greyish-white */
   --bs-dark-rgb: 220, 220, 220;
 
   /* Semantic Subtle Backgrounds */
@@ -182,11 +182,11 @@ body,
   background-color: #ebebeb1a !important; /* Greyish-white bar */
   border-bottom: 1px solid #b5b5b5;
 
-  --bs-navbar-color: #f7f5f5;                /* Charcoal inactive links */
-  --bs-navbar-hover-color: #e6e4e4;          /* Pure black hover */
-  --bs-navbar-active-color: #e6e4e4;         /* Pure black active link */
+  --bs-navbar-color: #f7f5f5; /* Charcoal inactive links */
+  --bs-navbar-hover-color: #e6e4e4; /* Pure black hover */
+  --bs-navbar-active-color: #e6e4e4; /* Pure black active link */
   --bs-navbar-disabled-color: #7a7a7a;
-  --bs-navbar-brand-color: #f7f5f5;          /* Pure black brand/title */
+  --bs-navbar-brand-color: #f7f5f5; /* Pure black brand/title */
   --bs-navbar-brand-hover-color: #bdd4c5;
   --bs-navbar-toggler-border-color: #8c8c8c;
 
@@ -257,13 +257,13 @@ body,
 .challenge-solves:hover,
 .challenge-solves:focus,
 .challenge-solves.active {
-    color: #fff !important;
+  color: #fff !important;
 }
-.nav-link[data-bs-target="#challenge"]  {
-    color: #fff !important;
+.nav-link[data-bs-target="#challenge"] {
+  color: #fff !important;
 }
 th[scope="row"] {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 /* Force table cells to use the theme text color, bypassing Bootstrap's variable chain */
 .table > :not(caption) > * > * {
